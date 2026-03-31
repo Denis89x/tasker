@@ -4,7 +4,7 @@ import by.lebenkov.task_tracker.storage.dto.taskDto.TaskRequest;
 import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 
 public interface TaskCommandService {
-    void createTask(TaskRequest taskRequest);
+    void createTask(TaskRequest taskRequest, Long userId);
 
     void updateTaskStatusByTaskId(Long taskId, TaskStatus status);
 }
