@@ -1,7 +1,7 @@
 package by.lebenkov.task_tracker.api.service.impl;
 
 import by.lebenkov.task_tracker.api.service.TaskReadService;
-import by.lebenkov.task_tracker.api.util.exc.ObjectNotFoundException;
+import by.lebenkov.task_tracker.api.util.exception.ObjectNotFoundException;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
 import by.lebenkov.task_tracker.storage.model.Task;
 import by.lebenkov.task_tracker.storage.repositories.TaskRepository;

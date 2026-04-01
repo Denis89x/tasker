@@ -6,5 +6,7 @@ import by.lebenkov.task_tracker.storage.model.User;
 public interface UserReadService {
     User findUserByUserId(Long userId);
 
+    User findUserByUsername(String username);
+
     UserResponse fetchUserByUserId(Long userId);
 }

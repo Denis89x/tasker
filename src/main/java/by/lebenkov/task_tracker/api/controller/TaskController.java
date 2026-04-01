@@ -23,11 +23,10 @@ public class TaskController {
     TaskReadService taskReadService;
     TaskCommandService taskCommandService;
 
-    @PostMapping("/{user_id}")
+    @PostMapping
     public ResponseEntity<Void> createTask(
-            @RequestBody @Valid TaskRequest taskRequest,
-            @PathVariable("user_id") long userId) {
-        taskCommandService.createTask(taskRequest, userId);
+            @RequestBody @Valid TaskRequest taskRequest) {
+        taskCommandService.createTask(taskRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

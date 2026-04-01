@@ -29,7 +29,4 @@ public class TaskRequest {
 
     @JsonProperty("task_priority")
     Integer taskPriority;
-
-    @JsonProperty("due_date")
-    LocalDateTime dueDate;
 }
