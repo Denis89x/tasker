@@ -6,7 +6,9 @@ import by.lebenkov.task_tracker.storage.model.Task;
 import java.util.List;
 
 public interface TaskReadService {
-    List<TaskResponse> fetchAllTaskResponsesByUserId(Long userId);
+    List<TaskResponse> fetchAllTaskResponses();
+
+    List<TaskResponse> fetchAllTasksForAdmin();
 
     Task findTaskById(Long taskId);
 }

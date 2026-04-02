@@ -1,6 +1,8 @@
 package by.lebenkov.task_tracker.api.service.impl;
 
+import by.lebenkov.task_tracker.api.security.SecurityUtils;
 import by.lebenkov.task_tracker.api.service.TaskReadService;
+import by.lebenkov.task_tracker.api.service.UserReadService;
 import by.lebenkov.task_tracker.api.util.exception.ObjectNotFoundException;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
 import by.lebenkov.task_tracker.storage.model.Task;
@@ -9,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.List;
 public class TaskReadServiceImpl implements TaskReadService {
 
     TaskRepository taskRepository;
+    UserReadService userReadService;
 
     private TaskResponse convertTaskToTaskResponse(Task task) {
         return TaskResponse.builder()
@@ -38,8 +42,17 @@ public class TaskReadServiceImpl implements TaskReadService {
     }
 
     @Override
-    public List<TaskResponse> fetchAllTaskResponsesByUserId(Long userId) {
-        return fetchAllTasksByUserId(userId).stream()
+    public List<TaskResponse> fetchAllTaskResponses() {
+        return fetchAllTasksByUserId(userReadService.findUserByUsername(
+                SecurityUtils.getCurrentUsername()).getUserId()).stream()
+                .map(this::convertTaskToTaskResponse)
+                .toList();
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<TaskResponse> fetchAllTasksForAdmin() {
+        return taskRepository.findAll().stream()
                 .map(this::convertTaskToTaskResponse)
                 .toList();
     }

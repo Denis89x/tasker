@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,12 +51,20 @@ public class TaskCommandServiceImpl implements TaskCommandService {
         taskRepository.save(task);
     }
 
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN') or @taskSecurity.isOwner(#taskId)")
+    public void deleteTaskById(Long taskId) {
+        taskRepository.deleteById(taskId);
+    }
+
     private void updateTaskStatus(Long taskId, TaskStatus status) {
         Task task = taskReadService.findTaskById(taskId);
         task.setTaskStatus(status);
         taskRepository.save(task);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @taskSecurity.isOwner(#taskId)")
     @Override
     public void updateTaskStatusByTaskId(Long taskId, TaskStatus status) {
         updateTaskStatus(taskId, status);
