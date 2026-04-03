@@ -9,6 +9,7 @@ import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import by.lebenkov.task_tracker.storage.model.Task;
 import by.lebenkov.task_tracker.storage.model.User;
 import by.lebenkov.task_tracker.storage.repositories.TaskRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,6 +37,7 @@ public class TaskCommandServiceTest {
     private TaskCommandServiceImpl taskCommandService;
 
     @Test
+    @DisplayName("Должен создать таску если юзер существует")
     void createTask_ShouldSaveTask_WhenUserExists() {
         String username = "user";
         User mockUser = User.builder()
@@ -64,6 +66,7 @@ public class TaskCommandServiceTest {
     }
 
     @Test
+    @DisplayName("Должен обновить статут у таски если таска найдена")
     void updateTaskStatusByTaskId_ShouldUpdateTaskStatus_WhenTaskFounded() {
         long taskId = 1;
         TaskStatus mockStatus = TaskStatus.TASK_DONE;
