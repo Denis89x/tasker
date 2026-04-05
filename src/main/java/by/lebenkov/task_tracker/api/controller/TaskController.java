@@ -31,7 +31,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> fetchTaskByUserUserId() {
+    public ResponseEntity<List<TaskResponse>> fetchAllTasks() {
         return ResponseEntity.ok(taskReadService.fetchAllTaskResponses());
     }
 
