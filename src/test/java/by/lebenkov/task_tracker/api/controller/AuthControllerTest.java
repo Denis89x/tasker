@@ -5,7 +5,9 @@ import by.lebenkov.task_tracker.api.service.UserCommandService;
 import by.lebenkov.task_tracker.api.service.impl.AccountDetailsService;
 import by.lebenkov.task_tracker.api.util.exception.GlobalExceptionHandler;
 import by.lebenkov.task_tracker.storage.dto.authDto.AuthResponse;
+import by.lebenkov.task_tracker.storage.dto.authDto.RefreshTokenRequest;
 import by.lebenkov.task_tracker.storage.dto.userDto.UserRequest;
+import by.lebenkov.task_tracker.storage.repositories.TokenRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -38,12 +41,15 @@ public class AuthControllerTest {
     private UserCommandService userCommandService;
 
     @MockitoBean
+    private TokenRepository tokenRepository;
+
+    @MockitoBean
     private JwtUtilService jwtUtilService;
 
     @MockitoBean
     private AccountDetailsService accountDetailsService;
 
-    /*@Test
+    @Test
     @DisplayName("Успешный вход в систему")
     void authenticate_ShouldReturnToken_WhenCredentialsAreValid() throws Exception {
         UserRequest request = UserRequest.builder()
@@ -52,7 +58,8 @@ public class AuthControllerTest {
                 .build();
 
         AuthResponse response = AuthResponse.builder()
-                .token("secret")
+                .refreshToken("ref_token")
+                .accessToken("acc_token")
                 .build();
 
         when(userCommandService.authenticate(request)).thenReturn(response);
@@ -61,7 +68,8 @@ public class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("secret"))
+                .andExpect(jsonPath("$.refresh_token").value("ref_token"))
+                .andExpect(jsonPath("$.access_token").value("acc_token"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));;
 
         verify(userCommandService).authenticate(any(UserRequest.class));
@@ -91,15 +99,18 @@ public class AuthControllerTest {
                 .build();
 
         AuthResponse response = AuthResponse.builder()
-                .token("secret")
+                .refreshToken("ref_token")
+                .accessToken("acc_token")
                 .build();
+
         when(userCommandService.registerUser(request)).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("secret"))
+                .andExpect(jsonPath("$.refresh_token").value("ref_token"))
+                .andExpect(jsonPath("$.access_token").value("acc_token"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         verify(userCommandService).registerUser(any(UserRequest.class));
@@ -118,5 +129,30 @@ public class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
-    }*/
+    }
+
+    @Test
+    @DisplayName("Успешное обновление токена")
+    void refreshToken_ShouldRefreshToken() throws Exception {
+        RefreshTokenRequest request = RefreshTokenRequest.builder()
+                .refreshToken("old_ref_token")
+                .build();
+
+        AuthResponse response = AuthResponse.builder()
+                .refreshToken("ref_token")
+                .accessToken("acc_token")
+                .build();
+
+        when(userCommandService.refreshToken(request.getRefreshToken())).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.refresh_token").value("ref_token"))
+                .andExpect(jsonPath("$.access_token").value("acc_token"))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userCommandService).refreshToken(anyString());
+    }
 }
