@@ -1,6 +1,7 @@
 package by.lebenkov.task_tracker.api.security;
 
 import by.lebenkov.task_tracker.api.service.impl.AccountDetailsService;
+import by.lebenkov.task_tracker.storage.repositories.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     JwtUtilService jwtUtilService;
     AccountDetailsService accountDetailsService;
+    TokenRepository tokenRepository;
 
     @Override
     protected void doFilterInternal(
@@ -43,12 +45,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
+
+        var isTokenValidInDb = tokenRepository.findByToken(jwt)
+                .map(t -> !t.isExpired() && !t.isRevoked())
+                .orElse(false);
+
+
         username = jwtUtilService.extractUsername(jwt);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.accountDetailsService.loadUserByUsername(username);
 
-            if (jwtUtilService.isTokenValid(jwt, userDetails)) {
+            if (jwtUtilService.isTokenValid(jwt, userDetails) && isTokenValidInDb) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

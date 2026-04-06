@@ -1,19 +1,18 @@
 package by.lebenkov.task_tracker.storage.dto.authDto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse {
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class RefreshTokenRequest {
 
-    @JsonProperty("access_token")
-    String accessToken;
-
+    @NotBlank(message = "Refresh token is required")
     @JsonProperty("refresh_token")
     String refreshToken;
 }

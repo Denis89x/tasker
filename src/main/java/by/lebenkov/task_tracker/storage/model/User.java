@@ -34,4 +34,8 @@ public class User {
     @OneToMany(mappedBy = "taskOwner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     List<Task> taskList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    List<Token> tokenList = new ArrayList<>();
 }

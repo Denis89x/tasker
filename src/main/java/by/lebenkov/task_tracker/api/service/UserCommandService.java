@@ -7,4 +7,6 @@ public interface UserCommandService {
     AuthResponse registerUser(UserRequest userRequest);
 
     AuthResponse authenticate (UserRequest userRequest);
+
+    AuthResponse refreshToken(String refreshToken);
 }

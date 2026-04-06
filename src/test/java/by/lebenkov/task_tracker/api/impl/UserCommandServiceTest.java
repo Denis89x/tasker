@@ -1,11 +1,14 @@
 package by.lebenkov.task_tracker.api.impl;
 
 import by.lebenkov.task_tracker.api.security.JwtUtilService;
+import by.lebenkov.task_tracker.api.service.UserReadService;
 import by.lebenkov.task_tracker.api.service.impl.AccountDetailsService;
 import by.lebenkov.task_tracker.api.service.impl.UserCommandServiceImpl;
 import by.lebenkov.task_tracker.storage.dto.authDto.AuthResponse;
 import by.lebenkov.task_tracker.storage.dto.userDto.UserRequest;
+import by.lebenkov.task_tracker.storage.model.Token;
 import by.lebenkov.task_tracker.storage.model.User;
+import by.lebenkov.task_tracker.storage.repositories.TokenRepository;
 import by.lebenkov.task_tracker.storage.repositories.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +21,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,6 +37,12 @@ public class UserCommandServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
+    private UserReadService userReadService;
+
+    @Mock
+    private TokenRepository tokenRepository;
+
+    @Mock
     private AuthenticationManager authenticationManager;
 
     @Mock
@@ -43,7 +54,6 @@ public class UserCommandServiceTest {
     @InjectMocks
     private UserCommandServiceImpl userCommandService;
 
-
     @Test
     @DisplayName("Авторизирует пользователя и возвращает токен, если его данные верны")
     void authenticate_ShouldAuthUser_WhenCredentialsAreValid() {
@@ -52,9 +62,23 @@ public class UserCommandServiceTest {
                 .password("password")
                 .build();
 
-        UserDetails mockDetails = mock(UserDetails.class);
         String expectedToken = "mock-jwt-token";
 
+        Token mockToken = Token.builder()
+                .token(expectedToken)
+                .build();
+
+/*        Тут лютая хуйня с тестом, нужно его переделать, ща додуматься не могу*/
+
+        User mockUser = User.builder()
+                .username("username")
+                .tokenList(List.of(mockToken))
+                .build();
+
+        UserDetails mockDetails = mock(UserDetails.class);
+
+
+        when(userReadService.findUserByUsername(mockUser.getUsername())).thenReturn(mockUser);
         when(accountDetailsService.loadUserByUsername(request.getUsername())).thenReturn(mockDetails);
         when(jwtUtilService.generateToken(mockDetails)).thenReturn(expectedToken);
 
@@ -63,6 +87,7 @@ public class UserCommandServiceTest {
         assertNotNull(response);
         assertEquals(expectedToken, response.getToken());
 
+        verify(tokenRepository, times(1)).save(mockToken);
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
     }
 

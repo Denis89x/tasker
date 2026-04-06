@@ -2,6 +2,7 @@ package by.lebenkov.task_tracker.api.controller;
 
 import by.lebenkov.task_tracker.api.service.UserCommandService;
 import by.lebenkov.task_tracker.storage.dto.authDto.AuthResponse;
+import by.lebenkov.task_tracker.storage.dto.authDto.RefreshTokenRequest;
 import by.lebenkov.task_tracker.storage.dto.userDto.UserRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -31,5 +32,10 @@ public class AuthController {
     public ResponseEntity<AuthResponse> authenticate(
             @RequestBody @Valid UserRequest request) {
         return ResponseEntity.ok(userCommandService.authenticate(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(userCommandService.refreshToken(request.getRefreshToken()));
     }
 }
