@@ -8,11 +8,15 @@ import by.lebenkov.task_tracker.api.util.exception.GlobalExceptionHandler;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskRequest;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
 import by.lebenkov.task_tracker.storage.enums.TaskStatus;
+import by.lebenkov.task_tracker.storage.repositories.TokenRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -42,6 +46,9 @@ public class TaskControllerTest {
     private TaskReadService taskReadService;
 
     @MockitoBean
+    private TokenRepository tokenRepository;
+
+    @MockitoBean
     private TaskCommandService taskCommandService;
 
     @MockitoBean
@@ -61,9 +68,9 @@ public class TaskControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/v1/tasks")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
         verify(taskCommandService, times(1)).createTask(any());
@@ -78,37 +85,45 @@ public class TaskControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/v1/tasks")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
     }
 
-    /*@Test
+    @Test
     @WithMockUser(username = "user")
     @DisplayName("Успешное возвращение списка тасков для авторизированного юзера")
     void fetchAllTasks_ShouldReturnListOfTasks() throws Exception {
+        TaskStatus taskStatus = TaskStatus.NEW_TASK;
+        int taskPriority = 1;
+
         TaskResponse response = TaskResponse.builder()
                 .title("title")
-                .taskOwnerUsername("user")
+                .taskStatus(taskStatus)
+                .taskPriority(taskPriority)
                 .build();
 
-        when(taskReadService.fetchAllTaskResponses()).thenReturn(List.of(response));
+        Page<TaskResponse> taskPage = new PageImpl<>(List.of(response));
 
-        mockMvc.perform(get("/api/v1/tasks")
-                .with(csrf())
-                .accept(MediaType.APPLICATION_JSON))
+        when(taskReadService.fetchAllTaskResponses(eq(taskStatus), eq(taskPriority), any(Pageable.class)))
+                .thenReturn(taskPage);
+
+        mockMvc.perform(get("/api/v1/tasks?page=0&size=10&priority=1&status=NEW_TASK")
+                        .with(csrf())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].title").value("title"));;
-    }*/
+                .andExpect(jsonPath("$.content[0].title").value("title"))
+                .andExpect(jsonPath("$.content[0].task_status").value(taskStatus.name()))
+                .andExpect(jsonPath("$.content[0].task_priority").value(taskPriority));
+    }
 
     @Test
     @DisplayName("Ошибка 403 неавторизован")
     void fetchAllTasks_ShouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/api/v1/tasks")
-                .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -117,7 +132,7 @@ public class TaskControllerTest {
     @DisplayName("Успешное удаление таски")
     void deleteTask_ShouldDeleteTask() throws Exception {
         mockMvc.perform(delete("/api/v1/tasks/{id}", 1)
-                .with(csrf()))
+                        .with(csrf()))
                 .andExpect(status().isOk());
     }
 }
