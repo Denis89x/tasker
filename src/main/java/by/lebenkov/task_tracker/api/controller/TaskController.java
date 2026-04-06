@@ -4,10 +4,15 @@ import by.lebenkov.task_tracker.api.service.TaskCommandService;
 import by.lebenkov.task_tracker.api.service.TaskReadService;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskRequest;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
+import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +36,12 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> fetchAllTasks() {
-        return ResponseEntity.ok(taskReadService.fetchAllTaskResponses());
+    public ResponseEntity<Page<TaskResponse>> fetchAllTasks(
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) Integer priority,
+            @PageableDefault(sort = "taskId", direction = Sort.Direction.DESC, size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(taskReadService.fetchAllTaskResponses(status, priority, pageable));
     }
 
     @DeleteMapping("/{task_id}")

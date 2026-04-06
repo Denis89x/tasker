@@ -5,12 +5,18 @@ import by.lebenkov.task_tracker.api.service.TaskReadService;
 import by.lebenkov.task_tracker.api.service.UserReadService;
 import by.lebenkov.task_tracker.api.util.exception.ObjectNotFoundException;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
+import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import by.lebenkov.task_tracker.storage.model.Task;
+import by.lebenkov.task_tracker.storage.model.User;
 import by.lebenkov.task_tracker.storage.repositories.TaskRepository;
+import by.lebenkov.task_tracker.storage.repositories.specification.TaskSpecifications;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -37,17 +43,19 @@ public class TaskReadServiceImpl implements TaskReadService {
                 .build();
     }
 
-    private List<Task> fetchAllTasksByUserId(Long userId) {
-        return taskRepository.findAllByTaskOwner_UserId(userId);
+    @Override
+    public Page<TaskResponse> fetchAllTaskResponses(TaskStatus status, Integer priority, Pageable pageable) {
+        Long userId = userReadService.findUserByUsername(SecurityUtils.getCurrentUsername()).getUserId();
+
+        // Собираем динамический запрос
+        Specification<Task> spec = Specification.where(TaskSpecifications.hasOwnerId(userId))
+                .and(TaskSpecifications.hasStatus(status))
+                .and(TaskSpecifications.hasPriority(priority));
+
+        return taskRepository.findAll(spec, pageable)
+                .map(this::convertTaskToTaskResponse);
     }
 
-    @Override
-    public List<TaskResponse> fetchAllTaskResponses() {
-        return fetchAllTasksByUserId(userReadService.findUserByUsername(
-                SecurityUtils.getCurrentUsername()).getUserId()).stream()
-                .map(this::convertTaskToTaskResponse)
-                .toList();
-    }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
