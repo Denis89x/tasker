@@ -17,8 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/tasks")
@@ -42,6 +40,15 @@ public class TaskController {
             @PageableDefault(sort = "taskId", direction = Sort.Direction.DESC, size = 10) Pageable pageable
     ) {
         return ResponseEntity.ok(taskReadService.fetchAllTaskResponses(status, priority, pageable));
+    }
+
+    @GetMapping("/fetch-all-admin")
+    public ResponseEntity<Page<TaskResponse>> fetchAllTasksForAdmin(
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) Integer priority,
+            @PageableDefault(sort = "taskId", direction = Sort.Direction.DESC, size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(taskReadService.fetchAllTasksForAdmin(status, priority, pageable));
     }
 
     @DeleteMapping("/{task_id}")
