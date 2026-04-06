@@ -58,10 +58,13 @@ public class TaskReadServiceImpl implements TaskReadService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public List<TaskResponse> fetchAllTasksForAdmin() {
-        return taskRepository.findAll().stream()
-                .map(this::convertTaskToTaskResponse)
-                .toList();
+    public Page<TaskResponse> fetchAllTasksForAdmin(TaskStatus status, Integer priority, Pageable pageable) {
+        Specification<Task> spec = Specification
+                .where(TaskSpecifications.hasStatus(status))
+                .and(TaskSpecifications.hasPriority(priority));
+
+        return taskRepository.findAll(spec, pageable)
+                .map(this::convertTaskToTaskResponse);
     }
 
     @Override

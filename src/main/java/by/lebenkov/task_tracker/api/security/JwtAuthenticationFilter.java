@@ -50,7 +50,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 .map(t -> !t.isExpired() && !t.isRevoked())
                 .orElse(false);
 
-
         username = jwtUtilService.extractUsername(jwt);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

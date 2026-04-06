@@ -79,24 +79,36 @@ public class TaskReadServiceTest {
     @Test
     @DisplayName("Должен вернуть список тасков сконвертированных в Dto")
     void fetchAllTasksForAdmin_ShouldReturnMappedList() {
-        User mockUser = User.builder()
+        TaskStatus status = TaskStatus.NEW_TASK;
+        int priority = 1;
+
+        User user = User.builder()
                 .userId(1L)
                 .username("username")
                 .build();
 
-        Task mockTask = Task.builder()
+        Task task = Task.builder()
                 .title("title")
-                .taskOwner(mockUser)
+                .taskStatus(status)
+                .taskPriority(priority)
+                .taskOwner(user)
                 .build();
 
-        when(taskRepository.findAll()).thenReturn(List.of(mockTask));
+        Pageable pageable = PageRequest.of(0, 10);
 
-        List<TaskResponse> foundedTaskResponses = taskReadService.fetchAllTasksForAdmin();
+        Page<Task> taskPage = new PageImpl<>(List.of(task));
 
-        assertEquals(1, foundedTaskResponses.size());
-        assertNotNull(foundedTaskResponses);
-        assertEquals(mockUser.getUsername(), foundedTaskResponses.get(0).getTaskOwnerUsername());
-        assertEquals(mockTask.getTitle(), foundedTaskResponses.get(0).getTitle());
+        when(taskRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(taskPage);
+
+        Page<TaskResponse> result = taskReadService.fetchAllTasksForAdmin(status, priority, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(user.getUsername(), result.getContent().get(0).getTaskOwnerUsername());
+        assertEquals(task.getTitle(), result.getContent().get(0).getTitle());
+        assertEquals(task.getTaskPriority(), result.getContent().get(0).getTaskPriority());
+        assertEquals(task.getTaskStatus(), result.getContent().get(0).getTaskStatus());
     }
 
     @Test
