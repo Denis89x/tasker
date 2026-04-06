@@ -5,6 +5,7 @@ import by.lebenkov.task_tracker.api.service.UserReadService;
 import by.lebenkov.task_tracker.api.service.impl.TaskReadServiceImpl;
 import by.lebenkov.task_tracker.api.util.exception.ObjectNotFoundException;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
+import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import by.lebenkov.task_tracker.storage.model.Task;
 import by.lebenkov.task_tracker.storage.model.User;
 import by.lebenkov.task_tracker.storage.repositories.TaskRepository;
@@ -15,6 +16,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -93,10 +99,12 @@ public class TaskReadServiceTest {
         assertEquals(mockTask.getTitle(), foundedTaskResponses.get(0).getTitle());
     }
 
-    /*@Test
+    @Test
     @DisplayName("Должен вернуть смапенный список всех тасков конкретного юзера")
     void fetchAllTaskResponses_ShouldReturnMappedList() {
         String username = "user";
+        TaskStatus status = TaskStatus.NEW_TASK;
+        int priority = 1;
 
         User mockUser = User.builder()
                 .userId(1L)
@@ -105,21 +113,29 @@ public class TaskReadServiceTest {
 
         Task task = Task.builder()
                 .title("title")
+                .taskStatus(TaskStatus.NEW_TASK)
+                .taskPriority(1)
                 .taskOwner(mockUser)
                 .build();
+
+        Page<Task> taskPage = new PageImpl<>(List.of(task));
 
         try (MockedStatic<SecurityUtils> mockedSecurity = mockStatic(SecurityUtils.class)) {
             mockedSecurity.when(SecurityUtils::getCurrentUsername).thenReturn(username);
 
             when(userReadService.findUserByUsername(username)).thenReturn(mockUser);
-            when(taskRepository.findAllByTaskOwner_UserId(mockUser.getUserId())).thenReturn(List.of(task));
+            when(taskRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(taskPage);
 
-            List<TaskResponse> result = taskReadService.fetchAllTaskResponses();
+            Pageable pageable = PageRequest.of(0,10);
+            Page<TaskResponse> result = taskReadService.fetchAllTaskResponses(status, priority, pageable);
 
             assertNotNull(result);
-            assertEquals(1, result.size());
-            assertEquals(username, result.get(0).getTaskOwnerUsername());
-            assertEquals(task.getTitle(), result.get(0).getTitle());
+            assertEquals(1, result.getTotalElements());
+            assertEquals(username, result.getContent().get(0).getTaskOwnerUsername());
+            assertEquals(task.getTitle(), result.getContent().get(0).getTitle());
+            assertEquals(task.getTaskPriority(), result.getContent().get(0).getTaskPriority());
+            assertEquals(task.getTaskStatus(), result.getContent().get(0).getTaskStatus());
         }
-    }*/
+    }
 }
