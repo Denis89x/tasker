@@ -6,10 +6,12 @@ import by.lebenkov.task_tracker.api.service.impl.AccountDetailsService;
 import by.lebenkov.task_tracker.api.service.impl.UserCommandServiceImpl;
 import by.lebenkov.task_tracker.storage.dto.authDto.AuthResponse;
 import by.lebenkov.task_tracker.storage.dto.userDto.UserRequest;
+import by.lebenkov.task_tracker.storage.enums.TokenStatus;
 import by.lebenkov.task_tracker.storage.model.Token;
 import by.lebenkov.task_tracker.storage.model.User;
 import by.lebenkov.task_tracker.storage.repositories.TokenRepository;
 import by.lebenkov.task_tracker.storage.repositories.UserRepository;
+import org.hibernate.mapping.Any;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +24,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -55,63 +59,108 @@ public class UserCommandServiceTest {
     private UserCommandServiceImpl userCommandService;
 
     @Test
-    @DisplayName("Авторизирует пользователя и возвращает токен, если его данные верны")
+    @DisplayName("Успешная аутентификация")
     void authenticate_ShouldAuthUser_WhenCredentialsAreValid() {
-        UserRequest request = UserRequest.builder()
-                .username("username")
-                .password("password")
+        String username = "username";
+        String password = "password";
+        User user = User.builder()
+                .userId(1L)
+                .username(username)
+                .password(password)
                 .build();
+        String newAccess = "access";
+        String newRefresh = "refresh";
 
-        String expectedToken = "mock-jwt-token";
-
-        Token mockToken = Token.builder()
-                .token(expectedToken)
-                .build();
-
-/*        Тут лютая хуйня с тестом, нужно его переделать, ща додуматься не могу*/
-
-        User mockUser = User.builder()
-                .username("username")
-                .tokenList(List.of(mockToken))
+        UserRequest userRequest = UserRequest.builder()
+                .username(username)
+                .password(password)
                 .build();
 
         UserDetails mockDetails = mock(UserDetails.class);
+        when(mockDetails.getUsername()).thenReturn(username);
 
+        when(accountDetailsService.loadUserByUsername(username)).thenReturn(mockDetails);
+        when(userReadService.findUserByUsername(username)).thenReturn(user);
+        when(jwtUtilService.generateAccessToken(any())).thenReturn(newAccess);
+        when(jwtUtilService.generateRefreshToken(any())).thenReturn(newRefresh);
 
-        when(userReadService.findUserByUsername(mockUser.getUsername())).thenReturn(mockUser);
-        when(accountDetailsService.loadUserByUsername(request.getUsername())).thenReturn(mockDetails);
-        when(jwtUtilService.generateToken(mockDetails)).thenReturn(expectedToken);
+        AuthResponse authResponse = userCommandService.authenticate(userRequest);
 
-        AuthResponse response = userCommandService.authenticate(request);
+        assertNotNull(authResponse);
+        assertEquals(newAccess, authResponse.getAccessToken());
+        assertEquals(newRefresh, authResponse.getRefreshToken());
 
-        assertNotNull(response);
-        assertEquals(expectedToken, response.getToken());
-
-        verify(tokenRepository, times(1)).save(mockToken);
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(tokenRepository).findAllValidTokenByUser(user.getUserId());
+        verify(tokenRepository, times(2)).save(any(Token.class));
     }
 
     @Test
+    @DisplayName("Успешная регистрация")
     void registerUser_ShouldRegisterUser_WhenCredentialsAreValid() {
-        UserRequest request = UserRequest.builder()
-                .username("username")
-                .password("password")
+        String username = "username";
+        String password = "password";
+        String hashPass = "hashPass";
+
+        String newAccess = "access";
+        String newRefresh = "refresh";
+
+        UserRequest userRequest = UserRequest.builder()
+                .username(username)
+                .password(password)
                 .build();
 
-        String expectedToken = "mock-jwt-token";
+        when(passwordEncoder.encode(password)).thenReturn(hashPass);
+        when(jwtUtilService.generateAccessToken(any())).thenReturn(newAccess);
+        when(jwtUtilService.generateRefreshToken(any())).thenReturn(newRefresh);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(jwtUtilService.generateToken(any(UserDetails.class))).thenReturn(expectedToken);
+        AuthResponse response = userCommandService.registerUser(userRequest);
 
-        AuthResponse response = userCommandService.registerUser(request);
+        assertNotNull(response);
+        assertEquals(newAccess, response.getAccessToken());
+        assertEquals(newRefresh, response.getRefreshToken());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
+        assertEquals(hashPass, userCaptor.getValue().getPassword());
 
-        User capturedUser = userCaptor.getValue();
+        verify(tokenRepository, times(2)).save(any(Token.class));
+    }
 
-        assertEquals(expectedToken, response.getToken());
-        assertNotEquals(request.getPassword(), capturedUser.getPassword());
-        assertEquals(request.getUsername(), capturedUser.getUsername());
-        verify(passwordEncoder).encode(request.getPassword());
+    @Test
+    @DisplayName("Успешный рефреш токена")
+    void refreshToken_ShouldRefreshToken() {
+        String username = "username";
+        String oldToken = "old_token";
+        String newAccess = "access";
+        String newRefresh = "refresh";
+
+        User user = User.builder()
+                .userId(1L)
+                .username(username)
+                .build();
+
+        Token token = Token.builder()
+                .token(oldToken)
+                .revoked(false)
+                .expired(false)
+                .tokenStatus(TokenStatus.REFRESH)
+                .build();
+
+        when(jwtUtilService.extractUsername(anyString())).thenReturn(username);
+        when(userReadService.findUserByUsername(username)).thenReturn(user);
+        when(tokenRepository.findByToken(oldToken)).thenReturn(Optional.of(token));
+        when(jwtUtilService.generateAccessToken(any())).thenReturn(newAccess);
+        when(jwtUtilService.generateRefreshToken(any())).thenReturn(newRefresh);
+
+        AuthResponse response = userCommandService.refreshToken(oldToken);
+
+        assertNotNull(response);
+        assertEquals(newAccess, response.getAccessToken());
+        assertEquals(newRefresh, response.getRefreshToken());
+
+        verify(tokenRepository).findAllValidTokenByUser(user.getUserId());
+        verify(tokenRepository, times(2)).save(any(Token.class));
     }
 }

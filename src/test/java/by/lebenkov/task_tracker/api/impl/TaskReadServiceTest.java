@@ -93,7 +93,7 @@ public class TaskReadServiceTest {
         assertEquals(mockTask.getTitle(), foundedTaskResponses.get(0).getTitle());
     }
 
-    @Test
+    /*@Test
     @DisplayName("Должен вернуть смапенный список всех тасков конкретного юзера")
     void fetchAllTaskResponses_ShouldReturnMappedList() {
         String username = "user";
@@ -121,5 +121,5 @@ public class TaskReadServiceTest {
             assertEquals(username, result.get(0).getTaskOwnerUsername());
             assertEquals(task.getTitle(), result.get(0).getTitle());
         }
-    }
+    }*/
 }

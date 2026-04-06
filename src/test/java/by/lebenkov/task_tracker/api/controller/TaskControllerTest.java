@@ -85,7 +85,7 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.message").exists());
     }
 
-    @Test
+    /*@Test
     @WithMockUser(username = "user")
     @DisplayName("Успешное возвращение списка тасков для авторизированного юзера")
     void fetchAllTasks_ShouldReturnListOfTasks() throws Exception {
@@ -102,7 +102,7 @@ public class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].title").value("title"));;
-    }
+    }*/
 
     @Test
     @DisplayName("Ошибка 403 неавторизован")

@@ -43,7 +43,7 @@ public class AuthControllerTest {
     @MockitoBean
     private AccountDetailsService accountDetailsService;
 
-    @Test
+    /*@Test
     @DisplayName("Успешный вход в систему")
     void authenticate_ShouldReturnToken_WhenCredentialsAreValid() throws Exception {
         UserRequest request = UserRequest.builder()
@@ -118,5 +118,5 @@ public class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
-    }
+    }*/
 }

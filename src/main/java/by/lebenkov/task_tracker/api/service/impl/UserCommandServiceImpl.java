@@ -73,6 +73,13 @@ public class UserCommandServiceImpl implements UserCommandService {
         tokenRepository.saveAll(validUserTokens);
     }
 
+    private void validateToken(Token token) {
+        if (token.isRevoked() || token.isExpired() ||
+                token.getTokenStatus() != TokenStatus.REFRESH) {
+            throw new BadCredentialsException("Invalid refresh token");
+        }
+    }
+
     @Override
     @Transactional
     public AuthResponse refreshToken(String refreshToken) {
@@ -83,10 +90,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         var storedToken = tokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new ObjectNotFoundException("Token not found"));
 
-        if (storedToken.isRevoked() || storedToken.isExpired() ||
-                storedToken.getTokenStatus() != TokenStatus.REFRESH) {
-            throw new BadCredentialsException("Invalid refresh token");
-        }
+        validateToken(storedToken);
 
         var userDetails = new AccountDetails(user);
         String newAccessToken = jwtUtilService.generateAccessToken(userDetails);
