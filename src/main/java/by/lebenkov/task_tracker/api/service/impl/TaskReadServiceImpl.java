@@ -47,7 +47,6 @@ public class TaskReadServiceImpl implements TaskReadService {
     public Page<TaskResponse> fetchAllTaskResponses(TaskStatus status, Integer priority, Pageable pageable) {
         Long userId = userReadService.findUserByUsername(SecurityUtils.getCurrentUsername()).getUserId();
 
-        // Собираем динамический запрос
         Specification<Task> spec = Specification.where(TaskSpecifications.hasOwnerId(userId))
                 .and(TaskSpecifications.hasStatus(status))
                 .and(TaskSpecifications.hasPriority(priority));

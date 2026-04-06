@@ -98,7 +98,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(newRefreshToken)
                 .build();
     }
 

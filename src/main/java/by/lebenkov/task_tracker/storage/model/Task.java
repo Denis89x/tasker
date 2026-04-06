@@ -4,6 +4,8 @@ import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +17,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@SQLDelete(sql = "UPDATE task SET deleted = true WHERE task_id = ?")
+@SQLRestriction("deleted = false")
 public class Task {
 
     @Id
@@ -41,4 +45,7 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "user_id")
     User taskOwner;
+
+    @Builder.Default
+    boolean deleted = false;
 }
