@@ -6,6 +6,7 @@ import by.lebenkov.task_tracker.api.service.TaskCommandService;
 import by.lebenkov.task_tracker.api.service.TaskReadService;
 import by.lebenkov.task_tracker.api.service.UserReadService;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskRequest;
+import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
 import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import by.lebenkov.task_tracker.storage.model.Task;
 import by.lebenkov.task_tracker.storage.model.User;
@@ -58,5 +59,16 @@ public class TaskCommandServiceImpl implements TaskCommandService {
     @Override
     public void updateTaskStatusByTaskId(Long taskId, TaskStatus status) {
         updateTaskStatus(taskId, status);
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or @taskSecurity.isOwner(#taskId)")
+    @Override
+    public TaskResponse updateTask(Long taskId, TaskRequest taskRequest) {
+        Task task = taskReadService.findTaskById(taskId);
+
+        taskMapper.updateEntityFromDto(taskRequest, task);
+        Task updatedTask = taskRepository.save(task);
+
+        return taskMapper.toResponse(updatedTask);
     }
 }

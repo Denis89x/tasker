@@ -1,5 +1,6 @@
 package by.lebenkov.task_tracker.api.service.impl;
 
+import by.lebenkov.task_tracker.api.mapper.UserMapper;
 import by.lebenkov.task_tracker.api.service.UserReadService;
 import by.lebenkov.task_tracker.api.util.exception.ObjectNotFoundException;
 import by.lebenkov.task_tracker.storage.dto.userDto.UserResponse;
@@ -18,13 +19,7 @@ import org.springframework.stereotype.Service;
 public class UserReadServiceImpl implements UserReadService {
 
     UserRepository userRepository;
-
-    private UserResponse convertUserToUserResponse(User user) {
-        return UserResponse.builder()
-                .userId(user.getUserId())
-                .username(user.getUsername())
-                .build();
-    }
+    UserMapper userMapper;
 
     @Override
     public User findUserByUserId(Long userId) {
@@ -44,6 +39,6 @@ public class UserReadServiceImpl implements UserReadService {
 
     @Override
     public UserResponse fetchUserByUserId(Long userId) {
-        return convertUserToUserResponse(findUserByUserId(userId));
+        return userMapper.toResponse(findUserByUserId(userId));
     }
 }

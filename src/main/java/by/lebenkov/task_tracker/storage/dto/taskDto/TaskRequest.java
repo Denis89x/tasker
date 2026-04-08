@@ -1,11 +1,10 @@
 package by.lebenkov.task_tracker.storage.dto.taskDto;
 
 import by.lebenkov.task_tracker.api.validation.FutureOrPresent;
+import by.lebenkov.task_tracker.api.validation.OnCreate;
 import by.lebenkov.task_tracker.api.validation.TaskStatusSelection;
 import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -17,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@TaskStatusSelection
+@TaskStatusSelection(groups = OnCreate.class)
 public class TaskRequest {
 
     @NotBlank(message = "Title should not be empty")

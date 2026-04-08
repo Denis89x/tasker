@@ -2,6 +2,7 @@ package by.lebenkov.task_tracker.api.config;
 
 import by.lebenkov.task_tracker.api.security.JwtAuthenticationFilter;
 import by.lebenkov.task_tracker.api.service.impl.LogoutServiceImpl;
+import by.lebenkov.task_tracker.api.util.exception.CustomAuthenticationEntryPoint;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,6 +31,7 @@ public class SecurityConfig {
 
     JwtAuthenticationFilter jwtAuthenticationFilter;
     LogoutServiceImpl logoutService;
+    CustomAuthenticationEntryPoint authEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -51,6 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authEntryPoint))
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/auth/logout")
                         .addLogoutHandler(logoutService)

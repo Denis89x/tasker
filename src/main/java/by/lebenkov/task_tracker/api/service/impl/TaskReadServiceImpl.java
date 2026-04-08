@@ -54,11 +54,18 @@ public class TaskReadServiceImpl implements TaskReadService {
                 .map(taskMapper::toResponse);
     }
 
+
     @Override
     public Task findTaskById(Long taskId) {
         return taskRepository.findById(taskId).orElseThrow(() -> {
             log.error("Task with id {} not found", taskId);
-            return new ObjectNotFoundException("Task with " + taskId + " id not found!");
+            return new ObjectNotFoundException("Задача с ID " + taskId + " не найдена или удалена");
         });
+    }
+
+    @PreAuthorize("@taskSecurity.isOwner(#taskId)")
+    @Override
+    public TaskResponse fetchTaskById(Long taskId) {
+        return taskMapper.toResponse(findTaskById(taskId));
     }
 }

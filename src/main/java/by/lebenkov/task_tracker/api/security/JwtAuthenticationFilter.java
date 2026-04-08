@@ -2,6 +2,7 @@ package by.lebenkov.task_tracker.api.security;
 
 import by.lebenkov.task_tracker.api.service.impl.AccountDetailsService;
 import by.lebenkov.task_tracker.storage.repositories.TokenRepository;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +57,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 .map(t -> !t.isExpired() && !t.isRevoked())
                 .orElse(false);
 
-        username = jwtUtilService.extractUsername(jwt);
+        try {
+            username = jwtUtilService.extractUsername(jwt);
+        } catch (ExpiredJwtException e) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.accountDetailsService.loadUserByUsername(username);

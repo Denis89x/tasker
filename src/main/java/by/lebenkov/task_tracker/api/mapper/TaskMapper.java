@@ -3,8 +3,7 @@ package by.lebenkov.task_tracker.api.mapper;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskRequest;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
 import by.lebenkov.task_tracker.storage.model.Task;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -17,4 +16,7 @@ public interface TaskMapper {
     TaskResponse toResponse(Task task);
 
     List<TaskResponse> toResponseList(List<Task> tasks);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntityFromDto(TaskRequest taskRequest, @MappingTarget Task task);
 }

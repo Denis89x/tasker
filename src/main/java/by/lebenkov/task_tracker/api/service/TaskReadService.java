@@ -12,4 +12,6 @@ public interface TaskReadService {
     Page<TaskResponse> fetchAllTasksForAdmin(TaskStatus status, Integer priority, Pageable pageable);
 
     Task findTaskById(Long taskId);
+
+    TaskResponse fetchTaskById(Long taskId);
 }
