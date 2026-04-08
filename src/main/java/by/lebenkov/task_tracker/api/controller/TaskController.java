@@ -50,6 +50,14 @@ public class TaskController {
         return ResponseEntity.ok(taskReadService.fetchAllTaskResponses(status, priority, pageable));
     }
 
+    @PatchMapping("/{task_id}/restore")
+    public ResponseEntity<Void> restoreTask(
+            @PathVariable("task_id") long taskId
+    ) {
+        taskCommandService.restoreTask(taskId);
+        return ResponseEntity.ok().build();
+    }
+
     @Operation(summary = "Получить задачу по ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача найдена"),

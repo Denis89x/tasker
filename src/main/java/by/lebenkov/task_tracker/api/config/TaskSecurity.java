@@ -16,7 +16,7 @@ public class TaskSecurity {
 
     public boolean isOwner(Long taskId) {
         String currentUsername = SecurityUtils.getCurrentUsername();
-        return taskRepository.findById(taskId)
+        return taskRepository.findDeletedTaskById(taskId)
                 .map(task -> task.getTaskOwner().getUsername().equals(currentUsername))
                 .orElse(false);
     }

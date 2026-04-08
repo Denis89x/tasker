@@ -12,4 +12,6 @@ public interface TaskCommandService {
     void updateTaskStatusByTaskId(Long taskId, TaskStatus status);
 
     TaskResponse updateTask(Long taskId, TaskRequest taskRequest);
+
+    void restoreTask(Long taskId);
 }

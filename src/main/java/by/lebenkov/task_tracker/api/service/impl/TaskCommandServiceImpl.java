@@ -5,6 +5,7 @@ import by.lebenkov.task_tracker.api.security.SecurityUtils;
 import by.lebenkov.task_tracker.api.service.TaskCommandService;
 import by.lebenkov.task_tracker.api.service.TaskReadService;
 import by.lebenkov.task_tracker.api.service.UserReadService;
+import by.lebenkov.task_tracker.api.util.exception.ObjectNotFoundException;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskRequest;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
 import by.lebenkov.task_tracker.storage.enums.TaskStatus;
@@ -70,5 +71,20 @@ public class TaskCommandServiceImpl implements TaskCommandService {
         Task updatedTask = taskRepository.save(task);
 
         return taskMapper.toResponse(updatedTask);
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or @taskSecurity.isOwner(#taskId)")
+    @Override
+    @Transactional
+    public void restoreTask(Long taskId) {
+        Task task = taskRepository.findDeletedTaskById(taskId)
+                .orElseThrow(() -> new ObjectNotFoundException("Задача с ID " + taskId + " не найдена в архиве"));
+
+        if (!task.isDeleted()) {
+            throw new IllegalStateException("Задача и так активна");
+        }
+
+        task.setDeleted(false);
+        taskRepository.save(task);
     }
 }
