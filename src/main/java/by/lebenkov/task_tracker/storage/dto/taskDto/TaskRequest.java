@@ -1,5 +1,7 @@
 package by.lebenkov.task_tracker.storage.dto.taskDto;
 
+import by.lebenkov.task_tracker.api.validation.FutureOrPresent;
+import by.lebenkov.task_tracker.api.validation.TaskStatusSelection;
 import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.EnumType;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@TaskStatusSelection
 public class TaskRequest {
 
     @NotBlank(message = "Title should not be empty")
@@ -27,6 +30,7 @@ public class TaskRequest {
     @JsonProperty("task_status")
     TaskStatus taskStatus;
 
+    @FutureOrPresent(message = "Дедлайн не может быть в прошлом")
     @JsonProperty("due_date")
     LocalDateTime dueDate;
 
