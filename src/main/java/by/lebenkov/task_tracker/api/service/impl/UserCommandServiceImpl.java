@@ -1,5 +1,6 @@
 package by.lebenkov.task_tracker.api.service.impl;
 
+import by.lebenkov.task_tracker.api.mapper.UserMapper;
 import by.lebenkov.task_tracker.api.security.AccountDetails;
 import by.lebenkov.task_tracker.api.security.JwtUtilService;
 import by.lebenkov.task_tracker.api.service.UserCommandService;
@@ -21,7 +22,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,20 +32,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserCommandServiceImpl implements UserCommandService {
 
     UserRepository userRepository;
-    PasswordEncoder passwordEncoder;
     UserReadService userReadService;
     AuthenticationManager authenticationManager;
     JwtUtilService jwtUtilService;
     AccountDetailsService accountDetailsService;
     TokenRepository tokenRepository;
-
-    private User convertUserRequestToUser(UserRequest userRequest) {
-        return User.builder()
-                .username(userRequest.getUsername())
-                .password(passwordEncoder.encode(userRequest.getPassword()))
-                .role("ROLE_USER")
-                .build();
-    }
+    UserMapper userMapper;
 
     private void saveUserToken(User user, String jwtToken, TokenStatus status) {
         var token = Token.builder()
@@ -108,7 +100,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     public AuthResponse registerUser(UserRequest userRequest) {
-        User user = convertUserRequestToUser(userRequest);
+        User user = userMapper.toEntity(userRequest);
         userRepository.save(user);
 
         var userDetails = new AccountDetails(user);

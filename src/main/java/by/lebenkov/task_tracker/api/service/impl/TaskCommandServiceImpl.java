@@ -1,5 +1,6 @@
 package by.lebenkov.task_tracker.api.service.impl;
 
+import by.lebenkov.task_tracker.api.mapper.TaskMapper;
 import by.lebenkov.task_tracker.api.security.SecurityUtils;
 import by.lebenkov.task_tracker.api.service.TaskCommandService;
 import by.lebenkov.task_tracker.api.service.TaskReadService;
@@ -23,20 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TaskCommandServiceImpl implements TaskCommandService {
 
+    TaskMapper taskMapper;
     TaskRepository taskRepository;
     TaskReadService taskReadService;
     UserReadService userReadService;
-
-    private Task convertTaskRequestToTask(TaskRequest taskRequest, User owner) {
-        return Task.builder()
-                .title(taskRequest.getTitle())
-                .description(taskRequest.getDescription())
-                .taskStatus(taskRequest.getTaskStatus())
-                .taskPriority(taskRequest.getTaskPriority())
-                .taskOwner(owner)
-                .dueDate(taskRequest.getDueDate())
-                .build();
-    }
 
     @Override
     @Transactional
@@ -45,7 +36,8 @@ public class TaskCommandServiceImpl implements TaskCommandService {
 
         User owner = userReadService.findUserByUsername(username);
 
-        Task task = convertTaskRequestToTask(taskRequest, owner);
+        Task task = taskMapper.toEntity(taskRequest);
+        task.setTaskOwner(owner);
         taskRepository.save(task);
     }
 

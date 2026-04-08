@@ -1,5 +1,6 @@
 package by.lebenkov.task_tracker.api.service.impl;
 
+import by.lebenkov.task_tracker.api.mapper.TaskMapper;
 import by.lebenkov.task_tracker.api.security.SecurityUtils;
 import by.lebenkov.task_tracker.api.service.TaskReadService;
 import by.lebenkov.task_tracker.api.service.UserReadService;
@@ -25,20 +26,9 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TaskReadServiceImpl implements TaskReadService {
 
+    TaskMapper taskMapper;
     TaskRepository taskRepository;
     UserReadService userReadService;
-
-    private TaskResponse convertTaskToTaskResponse(Task task) {
-        return TaskResponse.builder()
-                .taskId(task.getTaskId())
-                .title(task.getTitle())
-                .description(task.getDescription())
-                .taskStatus(task.getTaskStatus())
-                .taskPriority(task.getTaskPriority())
-                .dueDate(task.getDueDate())
-                .taskOwnerUsername(task.getTaskOwner().getUsername())
-                .build();
-    }
 
     @Override
     public Page<TaskResponse> fetchAllTaskResponses(TaskStatus status, Integer priority, Pageable pageable) {
@@ -49,7 +39,7 @@ public class TaskReadServiceImpl implements TaskReadService {
                 .and(TaskSpecifications.hasPriority(priority));
 
         return taskRepository.findAll(spec, pageable)
-                .map(this::convertTaskToTaskResponse);
+                .map(taskMapper::toResponse);
     }
 
 
@@ -61,7 +51,7 @@ public class TaskReadServiceImpl implements TaskReadService {
                 .and(TaskSpecifications.hasPriority(priority));
 
         return taskRepository.findAll(spec, pageable)
-                .map(this::convertTaskToTaskResponse);
+                .map(taskMapper::toResponse);
     }
 
     @Override
