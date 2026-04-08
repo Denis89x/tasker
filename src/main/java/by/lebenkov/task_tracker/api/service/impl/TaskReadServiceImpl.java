@@ -7,7 +7,6 @@ import by.lebenkov.task_tracker.api.util.exception.ObjectNotFoundException;
 import by.lebenkov.task_tracker.storage.dto.taskDto.TaskResponse;
 import by.lebenkov.task_tracker.storage.enums.TaskStatus;
 import by.lebenkov.task_tracker.storage.model.Task;
-import by.lebenkov.task_tracker.storage.model.User;
 import by.lebenkov.task_tracker.storage.repositories.TaskRepository;
 import by.lebenkov.task_tracker.storage.repositories.specification.TaskSpecifications;
 import lombok.AccessLevel;
@@ -19,8 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service

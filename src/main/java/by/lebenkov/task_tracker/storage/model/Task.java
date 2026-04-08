@@ -6,6 +6,9 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 @SQLDelete(sql = "UPDATE task SET deleted = true WHERE task_id = ?")
 @SQLRestriction("deleted = false")
 public class Task {
@@ -45,6 +49,14 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "user_id")
     User taskOwner;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", insertable = false)
+    LocalDateTime updatedAt;
 
     @Builder.Default
     boolean deleted = false;

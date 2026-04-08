@@ -17,8 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,8 +33,8 @@ public class TaskCommandServiceImpl implements TaskCommandService {
                 .description(taskRequest.getDescription())
                 .taskStatus(taskRequest.getTaskStatus())
                 .taskPriority(taskRequest.getTaskPriority())
-                .dueDate(LocalDateTime.now())
                 .taskOwner(owner)
+                .dueDate(taskRequest.getDueDate())
                 .build();
     }
 

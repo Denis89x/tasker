@@ -27,6 +27,9 @@ public class TaskRequest {
     @JsonProperty("task_status")
     TaskStatus taskStatus;
 
+    @JsonProperty("due_date")
+    LocalDateTime dueDate;
+
     @JsonProperty("task_priority")
     Integer taskPriority;
 }

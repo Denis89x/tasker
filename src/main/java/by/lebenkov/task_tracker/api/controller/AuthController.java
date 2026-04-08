@@ -4,6 +4,8 @@ import by.lebenkov.task_tracker.api.service.UserCommandService;
 import by.lebenkov.task_tracker.storage.dto.authDto.AuthResponse;
 import by.lebenkov.task_tracker.storage.dto.authDto.RefreshTokenRequest;
 import by.lebenkov.task_tracker.storage.dto.userDto.UserRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,8 @@ public class AuthController {
 
     UserCommandService userCommandService;
 
+    @Operation(summary = "Регистрация нового пользователя", description = "Создает аккаунт и возвращает пару токенов")
+    @ApiResponse(responseCode = "200", description = "Успешная регистрация")
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> createUser(
             @RequestBody @Valid UserRequest userRequest) {
